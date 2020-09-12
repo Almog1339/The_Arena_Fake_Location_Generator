@@ -1,0 +1,203 @@
+package UI;
+
+import Classes.User;
+import com.javadocmd.simplelatlng.LatLng;
+import org.json.JSONObject;
+
+import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import java.awt.*;
+import java.awt.event.*;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+
+
+public class MainForm extends JFrame implements ActionListener, ItemListener, ListSelectionListener {
+
+    private static JFrame frame;
+    private JList<String> emailJList;
+    private JButton addBtn;
+    private JButton delBtn;
+    private JButton sendReqBtn;
+    private JButton cancelReqBtn;
+    private JButton closeBtn;
+    private JTextField emailField;
+    private JPanel rootPanel;
+    private JButton clearBtn;
+    private JButton updateBtn;
+    private JProgressBar progressBar;
+    private static int progressBarCounter = 0;
+    private final ArrayList<String> emailArrayList = new ArrayList<>();
+    private Timer timer;
+    private static final DefaultListModel<String> emailListModel = new DefaultListModel<>();
+    private boolean flag = false;
+    private final LatLng startingCoordinates = new LatLng(37.419857, -122.078827);
+
+
+    public MainForm() {
+        initialEmailList(emailJList);
+        initialProgress();
+        addBtn.addActionListener(this);
+        closeBtn.addActionListener(this);
+        clearBtn.addActionListener(this);
+        delBtn.addActionListener(this);
+        updateBtn.addActionListener(this);
+        cancelReqBtn.addActionListener(this);
+        sendReqBtn.addActionListener(this);
+        emailJList.addListSelectionListener(this);
+    }
+
+    private void addEmail(String emailToAdd) {
+        emailArrayList.add(emailToAdd);
+        emailListModel.addElement(emailToAdd);
+        emailJList.setModel(emailListModel);
+        emailField.setText("");
+    }
+
+    private void deleteSelectedValue(int index) {
+        emailListModel.removeElementAt(index);
+        emailJList.setModel(emailListModel);
+    }
+
+    private static void initialEmailList(JList<String> emailList) {
+        emailList = new JList(emailListModel);
+        emailList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        emailList.setBorder(BorderFactory.createLineBorder(Color.cyan, 10));
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                createGui();
+            }
+        });
+    }
+
+    private static void createGui() {
+        frame = new JFrame("MainForm");
+        frame.setContentPane(new MainForm().rootPanel);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setTitle("The Arena Fake Location Generator");
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    @Override
+    public void valueChanged(ListSelectionEvent listSelectionEvent) {
+        emailField.setText(emailJList.getSelectedValue());
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent actionEvent) {
+        switch (actionEvent.getActionCommand()) {
+            case "Clear":
+                emailField.setText("");
+                emailJList.clearSelection();
+                break;
+            case "Add":
+                addEmail(emailField.getText());
+                break;
+            case "Delete":
+                deleteSelectedValue(emailJList.getSelectedIndex());
+                break;
+            case "Update":
+                updateSelectedValue(emailJList.getSelectedIndex());
+                break;
+            case "Send Request":
+                flag = false;
+                sendRequest();
+                break;
+            case "Cancel Request":
+                flag = true;
+                break;
+            case "Close":
+                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                break;
+        }
+    }
+
+    private void initialProgress() {
+        progressBar.setMinimum(0);
+        progressBar.setMaximum(100);
+        progressBar.setValue(0);
+        progressBar.setStringPainted(true);
+        progressBarCounter = 0;
+    }
+
+    private void sendRequest() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (; ; ) {
+                    if (flag) {
+                        break;
+                    } else {
+                        if (progressBarCounter==100){
+                            progressBarCounter = 0;
+                        }
+                        while (progressBarCounter < 100){
+                            progressBar.setValue(progressBarCounter);
+                            try {
+                                Thread.sleep(200);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            progressBarCounter+=1;
+                        }
+                        JSONObject obj = new JSONObject();
+                        for (String s : emailArrayList) {
+                            User user = new User(s, generateFakeCoordinates(startingCoordinates));
+                            obj.put("lat", user.getCoordinates().getLatitude());
+                            obj.put("lng", user.getCoordinates().getLongitude());
+                            obj.put("mail", user.getEmail());
+                            requestManager(obj,user);
+                        }
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private void requestManager(JSONObject obj, User user) {
+
+        //TODO: Check with Effi how to send Json inside of GET Request!
+        try{
+//            String url = ("http://localhost:8080/TheArenaServlet/onlineUsersLocation");
+//            HttpClient client = HttpClient.newHttpClient();
+//            HttpRequest request = HttpRequest.newBuilder()
+//                    .header("Content-Type","application/json")
+//                    .GET()
+//                    .uri(URI.create(url))
+//                    .build();
+
+        }catch (Exception ignored){
+
+        }
+    }
+
+    private LatLng generateFakeCoordinates(LatLng coordinates) {
+        double latitude = coordinates.getLatitude();
+        double longitude = coordinates.getLongitude();
+        LatLng latLng = new LatLng(latitude, longitude);
+        latLng.setLatitudeLongitude(latitude + (Math.random()), longitude + (Math.random()));
+
+        return latLng;
+    }
+
+    private void updateSelectedValue(int index) {
+        emailListModel.set(index, emailField.getText());
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent itemEvent) {
+
+    }
+}
