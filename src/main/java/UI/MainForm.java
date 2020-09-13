@@ -168,16 +168,16 @@ public class MainForm extends JFrame implements ActionListener, ItemListener, Li
 
     private void requestManager(JSONObject obj, User user) {
 
-        //TODO: Check with Effi how to send Json inside of GET Request!
         try{
-//            String url = ("http://localhost:8080/TheArenaServlet/onlineUsersLocation");
-//            HttpClient client = HttpClient.newHttpClient();
-//            HttpRequest request = HttpRequest.newBuilder()
-//                    .header("Content-Type","application/json")
-//                    .GET()
-//                    .uri(URI.create(url))
-//                    .build();
+            String url = ("http://localhost:8080/TheArenaServlet/onlineUsersLocation");
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .header("Content-Type","application/json")
+                    .PUT(HttpRequest.BodyPublishers.ofString(obj.toString()))
+                    .uri(URI.create(url))
+                    .build();
 
+            client.send(request,HttpResponse.BodyHandlers.ofString());
         }catch (Exception ignored){
 
         }
@@ -187,7 +187,7 @@ public class MainForm extends JFrame implements ActionListener, ItemListener, Li
         double latitude = coordinates.getLatitude();
         double longitude = coordinates.getLongitude();
         LatLng latLng = new LatLng(latitude, longitude);
-        latLng.setLatitudeLongitude(latitude + (Math.random()), longitude + (Math.random()));
+        latLng.setLatitudeLongitude(latitude + (Math.random()*0.000001), longitude + (Math.random()*0.000001));
 
         return latLng;
     }
