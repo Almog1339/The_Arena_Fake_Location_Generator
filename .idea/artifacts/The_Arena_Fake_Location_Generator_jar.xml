@@ -1,0 +1,12 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="The_Arena_Fake_Location_Generator:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/The_Arena_Fake_Location_Generator_jar</output-path>
+    <root id="archive" name="The_Arena_Fake_Location_Generator.jar">
+      <element id="module-output" name="The_Arena_Fake_Location_Generator" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/json/json/20200518/json-20200518.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/protobuf/protobuf-java/3.11.4/protobuf-java-3.11.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/mysql/mysql-connector-java/8.0.21/mysql-connector-java-8.0.21.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/javadocmd/simplelatlng/1.0.0/simplelatlng-1.0.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

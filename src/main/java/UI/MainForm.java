@@ -9,14 +9,13 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.Charset;
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 
 public class MainForm extends JFrame implements ActionListener, ItemListener, ListSelectionListener {
@@ -38,12 +37,17 @@ public class MainForm extends JFrame implements ActionListener, ItemListener, Li
     private Timer timer;
     private static final DefaultListModel<String> emailListModel = new DefaultListModel<>();
     private boolean flag = false;
-    private final LatLng startingCoordinates = new LatLng(37.419857, -122.078827);
+    private final LatLng startingCoordinates = new LatLng(37.4219983, -122.084);
 
+    private final static String URL = "jdbc:mysql://localhost:3306/TheArena?useSSL=false";
+    private final static String USERNAME = "root";
+    private final static String PASSWORD = null;
+    private static Connection connection = null;
 
     public MainForm() {
         initialEmailList(emailJList);
         initialProgress();
+        loadList();
         addBtn.addActionListener(this);
         closeBtn.addActionListener(this);
         clearBtn.addActionListener(this);
@@ -183,11 +187,59 @@ public class MainForm extends JFrame implements ActionListener, ItemListener, Li
         }
     }
 
+    public static Connection getConnection() {
+        /*
+         * this function is initialize the connection
+         */
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            return connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    private void loadList(){
+        Consumer<ResultSet> con = new Consumer<ResultSet>() {
+            @Override
+            public void accept(ResultSet resultSet) {
+                try {
+                    addEmail(resultSet.getString("email"));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        Statement statement = null;
+
+        try{
+            connection = getConnection();
+            assert connection != null;
+            statement = connection.createStatement();
+            ResultSet res = statement.executeQuery("select email from users join usersStatus uS on users.id = uS.userId;");
+            while(res.next()) {
+                con.accept(res);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (statement != null)
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+        }
+    }
+
     private LatLng generateFakeCoordinates(LatLng coordinates) {
         double latitude = coordinates.getLatitude();
         double longitude = coordinates.getLongitude();
         LatLng latLng = new LatLng(latitude, longitude);
-        latLng.setLatitudeLongitude(latitude + (Math.random()*0.000001), longitude + (Math.random()*0.000001));
+        latLng.setLatitudeLongitude(latitude + (Math.random()*0.0001), longitude + (Math.random()*0.0001));
 
         return latLng;
     }
